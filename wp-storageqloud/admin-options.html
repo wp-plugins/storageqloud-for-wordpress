@@ -1,0 +1,207 @@
+<?php if ($error):?>
+<div id="message" class="error fade"><p><strong><?php echo $error?></strong></p></div>
+<?php elseif ($message):?>
+<div id="message" class="updated fade"><p><strong><?php echo $message?></strong></p></div>
+<?php endif;?>
+<script type="text/javascript">
+function storageqloud_selectBucket(obj) {
+    if (obj.options[obj.selectedIndex].value == 'new') {
+        var bucket = prompt("Bucket name: ");
+        if (bucket) {
+            var len = obj.options.length
+            obj.options[len] = new Option("New bucket: " + bucket, bucket);
+            obj.options[len].selected = true;
+        }
+    }
+}
+</script>
+<style type="text/css">
+fieldset.options {
+    clear:both;
+    border:1px solid #ccc;
+}
+fieldset.options legend {
+    font-family: Georgia,"Times New Roman",Times,serif;
+    font-size: 22px;
+}
+
+div.album {
+    float:left;
+    width:200px;
+    height:150px;
+    margin-right:15px;
+}
+div.album td {
+    font-size:0.9em;
+}
+div.album-hidden img {
+    opacity:0.5;
+}
+</style>
+
+
+<div class="wrap">
+<h2 id="write-post">StorageQloud Plugin for WordPress</h2>
+<?php
+global $StorageQloudVersionCheck;
+if (is_object($StorageQloudVersionCheck)):?>
+<div style="width:200px; border:1px solid #ccc;padding:10px; float:right; margin:0 0 10px 10px;">
+<strong>Plugin Updates:</strong><br />
+<a href="plugins.php?page=StorageQloud/version-check.php">Check for updates to this plugin &gt;</a>
+</div>
+<?php endif;?>
+
+<p>
+This plugin allows you to easily upload, retrieve, and link to files stored on GreenQloud's Truly Green™ StorageQloud from within WordPress. StorageQloud is a cheap, carbon neutral and cost effective way to scale your site to easily handle large spikes in traffic (such as from Digg) without having to go through the expense of setting up the infrastructure for a content delivery network. StorageQloud is API compatible with AWS S3.
+</p>
+<p><strong>StorageQloud Setup:</strong> If you don't have a StorageQloud account yet go <a href="http://www.greenqloud.com/" target="_new">Sign up on GreenQloud's website &gt;</a>
+</p>
+
+<p><strong>Plugin Installation and Usage:</strong> Just follow the onscreen prompts to link this plugin to your StorageQloud account. </p>
+
+
+<div  style="float:right;width:250px;background:#eee;padding:10px;font-size:0.9em;">
+If you find this plugin helpful, please consider donating a few dollars to the author of the original plugin this is based on. Thanks!
+<br /><br />
+
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_donations" />
+<input type="hidden" name="business" value="joetan54@gmail.com" />
+<input type="hidden" name="item_name" value="TanTanNoodles Plugin Donation" />
+<input type="hidden" name="item_number" value="WordPress S3" />
+<input type="hidden" name="page_style" value="Primary" />
+
+<input type="hidden" name="no_shipping" value="1" />
+<input type="hidden" name="return" value="http://tantannoodles.com/donation-thankyou/" />
+<input type="hidden" name="cancel_return" value="http://tantannoodles.com/" />
+<input type="hidden" name="currency_code" value="USD" />
+<input type="hidden" name="tax" value="0" />
+<input type="hidden" name="cn" value="Message / Note" />
+<input type="hidden" name="lc" value="US" />
+<input type="hidden" name="bn" value="PP-DonationsBF" />
+<div style="float:left;width:150px;padding-top:10px">
+Amount: $<input type="text" name="amount" value="" style="width:50px;" /> <br />
+</div>
+<div style="float:right;width:100px">
+<input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-butcc-donate.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" />
+</div>
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" style="clear:both;" />
+</form>
+
+</div>
+
+
+<p>
+This plugin is provided by <a href="http://www.greenqloud.com" target="_new">GreenQloud</a> and licensed free of charge for you to use under the GPL v3. This plugin is <em>unsupported</em> and comes with no official technical support. 
+</p>
+<p>
+You can check the following pages for the latest updates to this plugin, along with any unofficial technical support:<br />
+<br />
+<strong>Release Page:</strong> <a href="http://greenqloud.com" target="_new">GreenQloud's website</a><br />
+<strong>Project Page:</strong> <a href="http://github.com/greenqloud/wp-storageqloud/" target="_new">StorageQloud for Wordpress on GitHub</a><br />
+<strong>Based on a plugin by Joe Tab</strong> <a href="http://tantannoodles.com/toolkit/wordpress-s3/" target="_new">Wordpress for S3</a><br />
+</p>
+
+<fieldset class="options">
+<legend>StorageQloud Settings</legend>
+
+<table width="100%" cellspacing="2" cellpadding="5" class="editform"> 
+<form method="post">
+<input type="hidden" name="action" value="save" />
+<tr valign="top">
+<th width="33%" scope="row">Access Key ID:</th> 
+<td><input type="text" name="options[key]" value="<?php echo $options['key'];?>" size="50" /></td> 
+</tr>
+<tr valign="top">
+<th width="33%" scope="row">Secret Key:</th> 
+<td><input type="text" name="options[secret]" value="<?php echo ($options['secret'] ? '-- not shown --' : '');?>" size="50" /><br />
+<small><a href="https://manage.greenqloud.com/#account_information" target="_new">Login to GreenQloud to retrieve your Secret Key &gt;</a></small></td> 
+</tr>
+<?php if (!$buckets):?>
+<tr valign="top">
+<td colspan="2">
+<p class="submit">
+<input type="submit" value="Authenticate Account &gt;" />
+</p>
+</td>
+</tr>
+<?php else:?>
+	<tr valign="top">
+	<th width="33%" scope="row">Use this bucket:</th> 
+	<td>
+	<select name="options[bucket]" size="1" onchange="return storageqloud_selectBucket(this)">
+	<option value="">Please select a bucket...</option>
+	<?php if (is_array($buckets)) foreach ($buckets as $bucket):?>
+	    <option value="<?php echo $bucket?>" <?php echo ($bucket == $options['bucket'] ? 'selected="selected"' : '')?>>&nbsp; &nbsp; <?php echo $bucket?></option>
+	<?php endforeach;?>
+	<option></option>
+	<option value="new">Create a new bucket...</option>
+	</select><br />
+	</td> 
+	</tr>
+
+	<tr valign="top">
+	<th width="33%" scope="row">Host name settings:</th> 
+	<td>
+		<input type="checkbox" name="options[virtual-host]" value="1" id="virtual-host" <?php echo ($options['virtual-host'] ? 'checked="checked" ' : '');?> />
+			<label for="virtual-host">Bucket is setup for virtual hosting (CNAME). See the article about unique bucket names </label> (<a href="http://support.greenqloud.com/entries/20751457-unique-bucket-names-in-storage-qloud" target="_new">more info</a>)
+	</td> 
+	</tr>
+
+	<tr valign="top">
+	<th width="33%" scope="row">File Uploads:</th> 
+	<td>
+		<input type="checkbox" name="options[wp-uploads]" value="1" id="wp-uploads" <?php echo ($options['wp-uploads'] ? 'checked="checked" ' : '');?> />
+			<label for="wp-uploads"> Use StorageQloud for storage when uploading via WordPress' upload tab.</label>
+			<br /><small>Note: Uncheck this to revert back to using your own web host for storage at anytime.</small>
+	</td> 
+	</tr>
+    
+	<tr valign="top">
+	<th width="33%" scope="row">Expires Header:</th> 
+	<td>
+		<input type="checkbox" name="options[expires]" value="315360000" id="expires" <?php echo ($options['expires']? 'checked="checked" ' : '');?> />
+		<label for="expires"> Set a <a href="http://developer.yahoo.com/performance/rules.html#expires" target="_blank">far future HTTP expiration header</a> for uploaded files <em>(recommended)</em>.</label>
+	</td> 
+	</tr>
+    
+	<tr valign="top">
+	<th width="33%" scope="row">File Permissions:</th> 
+	<td>
+		<input type="checkbox" name="options[permissions]" value="public" id="permissions" <?php echo ($options['permissions']=='public' ? 'checked="checked" ' : '');?> />
+		<label for="permissions"> Make sure all files in the selected bucket are publicly accessible.</label>
+	</td> 
+	</tr>
+
+
+<tr valign="top">
+<th width="33%" scope="row">&nbsp;</th> 
+<td>
+Uploading files <em>directly</em> to your StorageQloud account is not currently supported by this plugin but is very easy with <a href="https://manage.greenqloud.com/#storage" target="_new">GreenQloud's management console</a>.
+</td>
+</tr>
+
+<tr>
+<td colspan="2">
+<p class="submit">
+<input type="submit" value="Save &gt;" />
+</p>
+</td>
+</tr>
+<?php endif;?>
+
+
+</form>
+
+</table>
+
+
+
+</fieldset>
+
+
+
+
+
+
+</div>
